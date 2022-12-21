@@ -9,25 +9,34 @@ use vm::VM;
 
 fn main() {
     let vm = VM::init();
-    // let mut vm = VM::init();
-    // vm.set_debug();
 
     let mut chunk = Chunk::init();
-    let constant = chunk.add_constant(1.2);
-    chunk.write(OpCode::OpConstant(constant), 123);
 
-    let constant = chunk.add_constant(3.4);
-    chunk.write(OpCode::OpConstant(constant), 123);
+    let one_constant = chunk.add_constant(1.);
+    chunk.write(OpCode::OpConstant(one_constant), 1);
 
-    chunk.write(OpCode::OpAdd, 123);
+    let two_constant = chunk.add_constant(2.);
+    chunk.write(OpCode::OpConstant(two_constant), 1);
 
-    let add_const = chunk.add_constant(5.6);
-    chunk.write(OpCode::OpConstant(add_const), 123);
+    chunk.write(OpCode::OpAdd, 1);
 
-    chunk.write(OpCode::OpDivide, 123);
-    chunk.write(OpCode::OpNegate, 123);
+    let three_constant = chunk.add_constant(3.);
+    chunk.write(OpCode::OpConstant(three_constant), 1);
 
-    chunk.write(OpCode::OpReturn, 123);
+    chunk.write(OpCode::OpMultiply, 1);
 
-    println!("{:?}", vm.interpret(chunk));
+    let four_constant = chunk.add_constant(4.);
+    chunk.write(OpCode::OpConstant(four_constant), 1);
+
+    chunk.write(OpCode::OpSubtract, 1);
+
+    let five_constant = chunk.add_constant(5.);
+    chunk.write(OpCode::OpConstant(five_constant), 1);
+
+    chunk.write(OpCode::OpNegate, 1);
+    chunk.write(OpCode::OpDivide, 1);
+
+    chunk.write(OpCode::OpReturn, 1);
+
+    vm.interpret(chunk);
 }
