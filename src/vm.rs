@@ -1,5 +1,6 @@
 use crate::{
     chunk::{Chunk, OpCode},
+    compiler::compile,
     debug::disassemble_instruction,
     values::{print_value, Value},
 };
@@ -34,9 +35,9 @@ impl VM {
         self.debug = true
     }
 
-    pub fn interpret(mut self, chunk: Chunk) -> InterpretResult {
-        self.chunk = Box::new(chunk);
-        return self.run();
+    pub fn interpret(&mut self, source: String) -> InterpretResult {
+        compile(source);
+        return InterpretResult::InterpretOk;
     }
 
     fn run(mut self) -> InterpretResult {
