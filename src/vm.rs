@@ -36,12 +36,17 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: String) -> InterpretResult {
-        compile(source);
-        return InterpretResult::InterpretOk;
+        let mut chunk = Chunk::init();
+        if !compile(source, &mut chunk) {
+            return InterpretResult::InterpretCompileError;
+        }
+
+        self.chunk = Box::new(chunk);
+        self.run()
     }
 
-    fn run(mut self) -> InterpretResult {
-        for instruction in self.chunk.code {
+    fn run(&mut self) -> InterpretResult {
+        for instruction in &self.chunk.code {
             if self.debug {
                 for element in &self.stack {
                     print!("[{element}]");

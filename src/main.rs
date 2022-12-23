@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod chunk;
 mod compiler;
 mod debug;
@@ -20,7 +22,7 @@ fn repl(mut vm: VM) -> Result<()> {
     let stdin = io::stdin();
 
     for line in stdin.lock().lines() {
-        vm.interpret(line?);
+        vm.interpret(line? + "\n");
         print!("> ");
     }
 
