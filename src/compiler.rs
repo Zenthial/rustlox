@@ -218,10 +218,10 @@ fn get_rule(operator_type: &TokenType) -> ParseRule {
     }
 }
 
-fn number(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {
+fn number(parser: &mut Parser, _scanner: &mut Scanner, chunk: &mut Chunk) {
     let token = parser.previous.deref().as_ref().unwrap();
-    let value: Value = token.content.parse().unwrap();
-    emit_constant(parser, value, chunk);
+    let value: f64 = token.content.parse().unwrap();
+    emit_constant(parser, Value::from_number(value), chunk);
 }
 
 fn grouping(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {
