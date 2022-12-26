@@ -210,6 +210,11 @@ fn get_rule(operator_type: &TokenType) -> ParseRule {
             infix: None,
             precedence: Precedence::None,
         },
+        TokenType::True | TokenType::Nil | TokenType::False => ParseRule {
+            prefix: Some(literal),
+            infix: None,
+            precedence: Precedence::None,
+        },
         _ => ParseRule {
             prefix: None,
             infix: None,
@@ -259,6 +264,15 @@ fn binary(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {
         TokenType::Star => emit_byte(parser, chunk, OpCode::OpMultiply),
         TokenType::Slash => emit_byte(parser, chunk, OpCode::OpDivide),
 
+        _ => return,
+    }
+}
+
+fn literal(parser: &mut Parser, _scanner: &mut Scanner, chunk: &mut Chunk) {
+    match parser.previous.deref().as_ref().unwrap().t_type {
+        TokenType::False => emit_byte(parser, chunk, OpCode::OpFalse),
+        TokenType::Nil => emit_byte(parser, chunk, OpCode::OpNil),
+        TokenType::True => emit_byte(parser, chunk, OpCode::OpTrue),
         _ => return,
     }
 }

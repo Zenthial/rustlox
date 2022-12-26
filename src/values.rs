@@ -67,7 +67,7 @@ impl Value {
 }
 
 pub fn print_value(val: &Value) {
-    print!("{:?}", val);
+    print!("{}", val);
 }
 
 pub struct ValueArray {

@@ -8,6 +8,9 @@ pub enum OpCode {
     OpDivide,
     OpNegate,
     OpConstant(usize),
+    OpNil,
+    OpTrue,
+    OpFalse,
 }
 
 pub struct Chunk {

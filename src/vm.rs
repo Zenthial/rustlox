@@ -150,6 +150,9 @@ impl VM {
                 OpCode::OpMultiply => return self.binary_op(Operation::Star),
                 OpCode::OpAdd => return self.binary_op(Operation::Plus),
                 OpCode::OpSubtract => return self.binary_op(Operation::Minus),
+                OpCode::OpNil => self.stack.push(Value::from_nil()),
+                OpCode::OpTrue => self.stack.push(Value::from_bool(true)),
+                OpCode::OpFalse => self.stack.push(Value::from_bool(false)),
             }
         }
 
