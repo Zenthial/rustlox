@@ -64,6 +64,10 @@ impl Value {
             _ => false,
         }
     }
+
+    pub fn is_falsey(&self) -> bool {
+        return self.is_nil() || (self.is_bool() && !self.as_bool());
+    }
 }
 
 pub fn print_value(val: &Value) {

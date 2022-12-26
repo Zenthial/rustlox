@@ -153,6 +153,14 @@ impl VM {
                 OpCode::OpNil => self.stack.push(Value::from_nil()),
                 OpCode::OpTrue => self.stack.push(Value::from_bool(true)),
                 OpCode::OpFalse => self.stack.push(Value::from_bool(false)),
+                OpCode::OpNot => {
+                    let pop_val = match self.stack.pop() {
+                        Some(val) => val,
+                        None => return InterpretResult::InterpretCompileError,
+                    };
+
+                    self.stack.push(Value::from_bool(pop_val.is_falsey()))
+                }
             }
         }
 

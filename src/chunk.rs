@@ -9,6 +9,7 @@ pub enum OpCode {
     OpNegate,
     OpConstant(usize),
     OpNil,
+    OpNot,
     OpTrue,
     OpFalse,
 }

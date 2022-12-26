@@ -210,6 +210,11 @@ fn get_rule(operator_type: &TokenType) -> ParseRule {
             infix: None,
             precedence: Precedence::None,
         },
+        TokenType::Bang => ParseRule {
+            prefix: Some(unary),
+            infix: None,
+            precedence: Precedence::None,
+        },
         TokenType::True | TokenType::Nil | TokenType::False => ParseRule {
             prefix: Some(literal),
             infix: None,
@@ -246,6 +251,7 @@ fn unary(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {
     parse_precedence(scanner, parser, Precedence::Unary, chunk);
 
     match operator_type {
+        TokenType::Bang => emit_byte(parser, chunk, OpCode::OpNot),
         TokenType::Minus => emit_byte(parser, chunk, OpCode::OpNegate),
         _ => return,
     }
