@@ -13,6 +13,8 @@ pub enum InterpretResult {
 }
 
 pub enum Operation {
+    Greater,
+    Less,
     Plus,
     Minus,
     Star,
@@ -95,6 +97,8 @@ impl VM {
             Operation::Minus => self.stack.push(Value::from_number(a - b)),
             Operation::Star => self.stack.push(Value::from_number(a * b)),
             Operation::Div => self.stack.push(Value::from_number(a / b)),
+            Operation::Greater => self.stack.push(Value::from_bool(a > b)),
+            Operation::Less => self.stack.push(Value::from_bool(a < b)),
         }
 
         InterpretResult::InterpretOk
@@ -146,6 +150,8 @@ impl VM {
                     self.stack.push(*constant);
                 }
                 // definitely some way to not have all this repeated code, but we're prototyping
+                OpCode::OpGreater => return self.binary_op(Operation::Greater),
+                OpCode::OpLess => return self.binary_op(Operation::Less),
                 OpCode::OpDivide => return self.binary_op(Operation::Div),
                 OpCode::OpMultiply => return self.binary_op(Operation::Star),
                 OpCode::OpAdd => return self.binary_op(Operation::Plus),
@@ -159,7 +165,20 @@ impl VM {
                         None => return InterpretResult::InterpretCompileError,
                     };
 
-                    self.stack.push(Value::from_bool(pop_val.is_falsey()))
+                    self.stack.push(Value::from_bool(pop_val.is_falsey()));
+                }
+                OpCode::OpEqual => {
+                    let b = match self.stack.pop() {
+                        Some(val) => val,
+                        None => return InterpretResult::InterpretCompileError,
+                    };
+
+                    let a = match self.stack.pop() {
+                        Some(val) => val,
+                        None => return InterpretResult::InterpretCompileError,
+                    };
+
+                    self.stack.push(Value::from_bool(a == b));
                 }
             }
         }

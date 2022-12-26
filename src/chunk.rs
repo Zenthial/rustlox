@@ -12,6 +12,9 @@ pub enum OpCode {
     OpNot,
     OpTrue,
     OpFalse,
+    OpEqual,
+    OpGreater,
+    OpLess,
 }
 
 pub struct Chunk {

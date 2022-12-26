@@ -40,6 +40,9 @@ pub fn disassemble_instruction(
         OpCode::OpTrue => println!("OP_TRUE"),
         OpCode::OpFalse => println!("OP_FALSE"),
         OpCode::OpNot => println!("OP_NOT"),
+        OpCode::OpEqual => println!("OP_EQUAL"),
+        OpCode::OpGreater => println!("OP_GREATER"),
+        OpCode::OpLess => println!("OP_LESS"),
         OpCode::OpConstant(index) => {
             print!(
                 "OP_CONSTANT {space:>16} {cnst} '",

@@ -147,6 +147,11 @@ fn emit_byte(parser: &Parser, chunk: &mut Chunk, byte: OpCode) {
     chunk.write(byte, line);
 }
 
+fn emit_bytes(parser: &Parser, chunk: &mut Chunk, byte1: OpCode, byte2: OpCode) {
+    emit_byte(parser, chunk, byte1);
+    emit_byte(parser, chunk, byte2);
+}
+
 fn emit_return(parser: &Parser, chunk: &mut Chunk) {
     emit_byte(parser, chunk, OpCode::OpReturn);
 }
@@ -215,6 +220,36 @@ fn get_rule(operator_type: &TokenType) -> ParseRule {
             infix: None,
             precedence: Precedence::None,
         },
+        TokenType::BangEqual => ParseRule {
+            prefix: None,
+            infix: Some(binary),
+            precedence: Precedence::Equality,
+        },
+        TokenType::EqualEqual => ParseRule {
+            prefix: None,
+            infix: Some(binary),
+            precedence: Precedence::Equality,
+        },
+        TokenType::Greater => ParseRule {
+            prefix: None,
+            infix: Some(binary),
+            precedence: Precedence::Comparison,
+        },
+        TokenType::GreaterEqual => ParseRule {
+            prefix: None,
+            infix: Some(binary),
+            precedence: Precedence::Comparison,
+        },
+        TokenType::Less => ParseRule {
+            prefix: None,
+            infix: Some(binary),
+            precedence: Precedence::Comparison,
+        },
+        TokenType::LessEqual => ParseRule {
+            prefix: None,
+            infix: Some(binary),
+            precedence: Precedence::Comparison,
+        },
         TokenType::True | TokenType::Nil | TokenType::False => ParseRule {
             prefix: Some(literal),
             infix: None,
@@ -265,6 +300,12 @@ fn binary(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {
     parse_precedence(scanner, parser, rule.precedence.next(), chunk);
 
     match operator_type {
+        TokenType::BangEqual => emit_bytes(parser, chunk, OpCode::OpEqual, OpCode::OpNot),
+        TokenType::EqualEqual => emit_byte(parser, chunk, OpCode::OpEqual),
+        TokenType::Greater => emit_byte(parser, chunk, OpCode::OpGreater),
+        TokenType::GreaterEqual => emit_bytes(parser, chunk, OpCode::OpLess, OpCode::OpNot),
+        TokenType::Less => emit_byte(parser, chunk, OpCode::OpLess),
+        TokenType::LessEqual => emit_bytes(parser, chunk, OpCode::OpGreater, OpCode::OpNot),
         TokenType::Plus => emit_byte(parser, chunk, OpCode::OpAdd),
         TokenType::Minus => emit_byte(parser, chunk, OpCode::OpSubtract),
         TokenType::Star => emit_byte(parser, chunk, OpCode::OpMultiply),
