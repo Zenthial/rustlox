@@ -1,9 +1,11 @@
-use std::{any::Any, ops::Deref, rc::Rc};
+use std::{ops::Deref, rc::Rc};
 
 use crate::{
-    chunk::{self, Chunk, OpCode},
+    chunk::{Chunk, OpCode},
+    debug::disassemble_chunk,
     scanner::{Scanner, Token, TokenType},
     values::Value,
+    DEBUG_PRINT,
 };
 
 struct Parser {
@@ -64,6 +66,24 @@ enum Precedence {
     Primary = 10,
 }
 
+impl Precedence {
+    fn next(&self) -> Precedence {
+        return match self {
+            Precedence::None => Self::Assignment,
+            Precedence::Assignment => Self::Or,
+            Precedence::Or => Self::And,
+            Precedence::And => Self::Equality,
+            Precedence::Equality => Self::Comparison,
+            Precedence::Comparison => Self::Term,
+            Precedence::Term => Self::Factor,
+            Precedence::Factor => Self::Unary,
+            Precedence::Unary => Self::Call,
+            Precedence::Call => Self::Primary,
+            Precedence::Primary => Self::None,
+        };
+    }
+}
+
 fn advance(scanner: &mut Scanner, parser: &mut Parser) {
     parser.previous = Rc::new(parser.current.deref().clone());
 
@@ -84,6 +104,7 @@ fn advance(scanner: &mut Scanner, parser: &mut Parser) {
 fn consume(t_type: TokenType, message: String, scanner: &mut Scanner, parser: &mut Parser) {
     if parser.current.is_some() && parser.current.as_ref().as_ref().unwrap().t_type == t_type {
         advance(scanner, parser);
+        return;
     }
 
     parser.error_at_current(message);
@@ -140,7 +161,13 @@ fn emit_constant(parser: &Parser, value: Value, chunk: &mut Chunk) {
 }
 
 fn end_compiler(parser: &Parser, chunk: &mut Chunk) {
-    emit_return(parser, chunk)
+    emit_return(parser, chunk);
+
+    if DEBUG_PRINT {
+        if !parser.had_error {
+            disassemble_chunk(chunk, "code");
+        }
+    }
 }
 
 type ParseFn = fn(&mut Parser, &mut Scanner, &mut Chunk);
@@ -220,10 +247,20 @@ fn unary(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {
 }
 
 fn binary(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {
-    let token = parser.previous.deref().as_ref().unwrap();
+    let token = parser.previous.deref().as_ref().unwrap().clone();
     let operator_type = &token.t_type;
 
     let rule = get_rule(operator_type);
+    parse_precedence(scanner, parser, rule.precedence.next(), chunk);
+
+    match operator_type {
+        TokenType::Plus => emit_byte(parser, chunk, OpCode::OpAdd),
+        TokenType::Minus => emit_byte(parser, chunk, OpCode::OpSubtract),
+        TokenType::Star => emit_byte(parser, chunk, OpCode::OpMultiply),
+        TokenType::Slash => emit_byte(parser, chunk, OpCode::OpDivide),
+
+        _ => return,
+    }
 }
 
 pub fn compile(source: String, chunk: &mut Chunk) -> bool {

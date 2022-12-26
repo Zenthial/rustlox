@@ -17,6 +17,8 @@ use std::process::exit;
 
 use vm::VM;
 
+const DEBUG_PRINT: bool = true;
+
 fn repl(mut vm: VM) -> Result<()> {
     print!("> ");
     let stdin = io::stdin();

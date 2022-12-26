@@ -1,16 +1,15 @@
 use crate::{
-    chunk::OpCode,
+    chunk::{Chunk, OpCode},
     values::{print_value, ValueArray},
 };
 
-// pub fn disassemble_chunk: &Chunk, name: &str) {
-//     println!("== {} ==", name);
-//     let boxed_= Box::new(chunk);
-//     let mut offset = 0;
-//     for instruction in &chunk.code {
-//         offset = disassemble_instruction(instruction, offset);
-//     }
-// }
+pub fn disassemble_chunk(chunk: &Chunk, name: &str) {
+    println!("== {} ==", name);
+    let mut offset = 0;
+    for instruction in &chunk.code {
+        offset = disassemble_instruction(&chunk.lines, &chunk.constants, instruction, offset);
+    }
+}
 
 pub fn disassemble_instruction(
     lines: &Vec<i32>,
