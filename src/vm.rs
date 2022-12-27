@@ -1,4 +1,4 @@
-use std::{collections::LinkedList, ops::Deref};
+use std::ops::Deref;
 
 use crate::{
     chunk::{Chunk, OpCode},
@@ -33,7 +33,6 @@ pub struct VM {
     debug: bool,
 
     stack: Vec<Value>,
-    objects: LinkedList<Box<ObjectType>>,
 }
 
 impl VM {
@@ -42,7 +41,6 @@ impl VM {
             chunk: Box::new(Chunk::init()),
             debug: false,
             stack: Vec::new(),
-            objects: LinkedList::new(),
         }
     }
 
