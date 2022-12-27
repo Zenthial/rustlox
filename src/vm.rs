@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::{
     chunk::{Chunk, OpCode},
     compiler::compile,
@@ -22,8 +24,8 @@ pub enum Operation {
 }
 
 // one key thing to note here is that the books implementation uses an ip pointer
-// we dont do this, we just iterate through the code vector
-// pointer fuckery isnt that useful in rust, nor is it suggested due to the memory model
+// we don't do this, we just iterate through the code vector
+// pointer fuckery isn't that useful in rust, nor is it suggested due to the memory model
 
 // we don't keep an IP because the chunk is just the start
 pub struct VM {
@@ -104,6 +106,23 @@ impl VM {
         InterpretResult::InterpretOk
     }
 
+    fn concatenate(&mut self) -> InterpretResult {
+        let b = match self.stack.pop() {
+            Some(val) => val,
+            None => return InterpretResult::InterpretCompileError,
+        }
+        .as_string();
+
+        let a = match self.stack.pop() {
+            Some(val) => val,
+            None => return InterpretResult::InterpretCompileError,
+        }
+        .as_string();
+
+        self.stack.push(Value::from_string(a.content + &b.content));
+        InterpretResult::InterpretOk
+    }
+
     fn run(&mut self) -> InterpretResult {
         for instruction in &self.chunk.code {
             if self.debug {
@@ -147,14 +166,30 @@ impl VM {
                 OpCode::OpConstant(index) => {
                     let constant = self.chunk.constants.get(&index);
                     // push value
-                    self.stack.push(*constant);
+                    self.stack.push(constant.deref().clone());
                 }
                 // definitely some way to not have all this repeated code, but we're prototyping
                 OpCode::OpGreater => return self.binary_op(Operation::Greater),
                 OpCode::OpLess => return self.binary_op(Operation::Less),
                 OpCode::OpDivide => return self.binary_op(Operation::Div),
                 OpCode::OpMultiply => return self.binary_op(Operation::Star),
-                OpCode::OpAdd => return self.binary_op(Operation::Plus),
+                OpCode::OpAdd => {
+                    let peak_0 = self.peak(0);
+                    let peak_1 = self.peak(1);
+                    if peak_0.is_some() && peak_1.is_some() {
+                        let value_0 = peak_0.unwrap();
+                        let value_1 = peak_1.unwrap();
+
+                        if value_0.is_string() && value_1.is_string() {
+                            return self.concatenate();
+                        } else if value_0.is_number() && value_1.is_number() {
+                            return self.binary_op(Operation::Plus);
+                        }
+                    }
+
+                    self.runtime_error("Operands must be two numbers or two strings.");
+                    return InterpretResult::InterpretRuntimeError;
+                }
                 OpCode::OpSubtract => return self.binary_op(Operation::Minus),
                 OpCode::OpNil => self.stack.push(Value::from_nil()),
                 OpCode::OpTrue => self.stack.push(Value::from_bool(true)),

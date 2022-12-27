@@ -1,10 +1,47 @@
 use std::fmt::Display;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
+pub struct ObjString {
+    pub content: String,
+}
+
+impl ObjString {
+    fn allocate(chars: String) -> Self {
+        ObjString { content: chars }
+    }
+}
+
+impl Display for ObjString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.content)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ObjectType {
+    String(ObjString),
+}
+
+impl ObjectType {
+    fn print(&self) {
+        match self {
+            Self::String(s) => println!("{}", s.content),
+        }
+    }
+}
+
+impl Display for ObjectType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Bool(bool),
     Nil,
     Number(f64),
+    Object(ObjectType),
 }
 
 impl Display for Value {
@@ -13,6 +50,7 @@ impl Display for Value {
             Value::Bool(value) => write!(f, "{}", value),
             Value::Nil => write!(f, "Nil"),
             Value::Number(value) => write!(f, "{}", value),
+            Value::Object(obj) => write!(f, "{:?}", obj),
         }
     }
 }
@@ -24,6 +62,10 @@ impl Value {
 
     pub fn from_number(n: f64) -> Self {
         return Self::Number(n);
+    }
+
+    pub fn from_string(a: String) -> Self {
+        return Self::Object(ObjectType::String(ObjString { content: a }));
     }
 
     pub fn from_nil() -> Self {
@@ -40,7 +82,20 @@ impl Value {
     pub fn as_bool(&self) -> bool {
         match self {
             Value::Bool(b) => *b,
-            _ => panic!("incorrect usage of as_number"),
+            _ => panic!("incorrect usage of as_bool"),
+        }
+    }
+
+    pub fn as_object(&self) -> ObjectType {
+        match self {
+            Value::Object(o) => o.clone(),
+            _ => panic!("Incorrect usage of as_object"),
+        }
+    }
+
+    pub fn as_string(&self) -> ObjString {
+        match self.as_object() {
+            ObjectType::String(s) => s,
         }
     }
 
@@ -49,6 +104,16 @@ impl Value {
             Value::Bool(_) => true,
             _ => false,
         }
+    }
+
+    pub fn is_string(&self) -> bool {
+        if let Self::Object(s) = self {
+            if let ObjectType::String(_) = s {
+                return true;
+            }
+        }
+
+        false
     }
 
     pub fn is_number(&self) -> bool {
