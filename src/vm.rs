@@ -65,7 +65,7 @@ impl VM {
     }
 
     fn runtime_error(&mut self, format: &str) {
-        eprintln!("{format}");
+        eprint!("{format} ");
 
         let index = self.chunk.code.len() - 1;
         let line = self.chunk.lines[index];
