@@ -1,12 +1,12 @@
 use std::fmt::Display;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ObjString {
-    pub content: String,
+    pub content: Box<String>,
 }
 
 impl ObjString {
-    fn allocate(chars: String) -> Self {
+    fn allocate(chars: Box<String>) -> Self {
         ObjString { content: chars }
     }
 }
@@ -59,7 +59,9 @@ impl Value {
     }
 
     pub fn from_string(a: String) -> Self {
-        return Self::Object(ObjectType::String(ObjString { content: a }));
+        return Self::Object(ObjectType::String(ObjString {
+            content: Box::new(a),
+        }));
     }
 
     pub fn from_nil() -> Self {
@@ -147,6 +149,14 @@ impl ValueArray {
     }
 
     pub fn get(&self, index: &usize) -> &Value {
-        return self.values.get(*index).unwrap_or(&Value::Number(-1.0));
+        return self.values.get(*index).unwrap_or(&Value::Nil);
+    }
+
+    pub fn take(&mut self, index: &usize) -> Value {
+        if self.values.get(*index).is_none() {
+            return Value::from_number(-1.0);
+        } else {
+            return self.values.swap_remove(*index);
+        }
     }
 }

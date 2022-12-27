@@ -1,10 +1,10 @@
-use std::ops::Deref;
+use std::{collections::HashMap, ops::Deref};
 
 use crate::{
     chunk::{Chunk, OpCode},
     compiler::compile,
     debug::disassemble_instruction,
-    values::{print_value, ObjectType, Value},
+    values::{print_value, ObjString, ObjectType, Value},
 };
 
 #[derive(Debug)]
@@ -33,6 +33,7 @@ pub struct VM {
     debug: bool,
 
     stack: Vec<Value>,
+    strings: HashMap<String, Box<String>>,
 }
 
 impl VM {
@@ -41,6 +42,7 @@ impl VM {
             chunk: Box::new(Chunk::init()),
             debug: false,
             stack: Vec::new(),
+            strings: HashMap::new(),
         }
     }
 
@@ -111,6 +113,14 @@ impl VM {
         self.stack.push(Value::Object(object_type));
     }
 
+    fn allocate_string(&mut self, mut string: ObjString) -> ObjString {
+        if self.strings.contains_key(string.content.deref()) {
+            string.content = self.strings.get(string.content.deref()).unwrap().clone();
+        }
+
+        string
+    }
+
     fn concatenate(&mut self) -> InterpretResult {
         let b = match self.stack.pop() {
             Some(val) => val,
@@ -124,7 +134,8 @@ impl VM {
         }
         .as_string();
 
-        self.stack.push(Value::from_string(a.content + &b.content));
+        self.stack
+            .push(Value::from_string(*a.content + b.content.deref()));
         InterpretResult::InterpretOk
     }
 
@@ -169,9 +180,20 @@ impl VM {
                     self.stack.push(Value::from_number(-pop_val.as_number()));
                 }
                 OpCode::OpConstant(index) => {
-                    let constant = self.chunk.constants.get(&index);
-                    // push value
-                    self.stack.push(constant.deref().clone());
+                    let mut constant = self.chunk.constants.take(index);
+                    if let Value::Object(o) = constant {
+                        if let ObjectType::String(mut s) = o {
+                            if self.strings.contains_key(s.content.deref()) {
+                                s.content = self.strings.get(s.content.deref()).unwrap().clone();
+                                constant = Value::Object(ObjectType::String(s));
+                                self.stack.push(constant);
+                                return InterpretResult::InterpretOk;
+                            }
+                        }
+                    } else {
+                        // push value
+                        self.stack.push(constant);
+                    }
                 }
                 // definitely some way to not have all this repeated code, but we're prototyping
                 OpCode::OpGreater => return self.binary_op(Operation::Greater),
