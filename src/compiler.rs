@@ -255,6 +255,11 @@ fn get_rule(operator_type: &TokenType) -> ParseRule {
             infix: None,
             precedence: Precedence::None,
         },
+        TokenType::String => ParseRule {
+            prefix: Some(string),
+            infix: None,
+            precedence: Precedence::None,
+        },
         _ => ParseRule {
             prefix: None,
             infix: None,
@@ -267,6 +272,11 @@ fn number(parser: &mut Parser, _scanner: &mut Scanner, chunk: &mut Chunk) {
     let token = parser.previous.deref().as_ref().unwrap();
     let value: f64 = token.content.parse().unwrap();
     emit_constant(parser, Value::from_number(value), chunk);
+}
+
+fn string(parser: &mut Parser, _scanner: &mut Scanner, chunk: &mut Chunk) {
+    let token = parser.previous.deref().as_ref().unwrap();
+    emit_constant(parser, Value::from_string(token.content.to_string()), chunk)
 }
 
 fn grouping(parser: &mut Parser, scanner: &mut Scanner, chunk: &mut Chunk) {

@@ -23,16 +23,10 @@ pub enum ObjectType {
 }
 
 impl ObjectType {
-    fn print(&self) {
+    fn print(&self) -> String {
         match self {
-            Self::String(s) => println!("{}", s.content),
+            Self::String(s) => s.content.to_string(),
         }
-    }
-}
-
-impl Display for ObjectType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
     }
 }
 
@@ -50,7 +44,7 @@ impl Display for Value {
             Value::Bool(value) => write!(f, "{}", value),
             Value::Nil => write!(f, "Nil"),
             Value::Number(value) => write!(f, "{}", value),
-            Value::Object(obj) => write!(f, "{:?}", obj),
+            Value::Object(obj) => write!(f, "{}", obj.print()),
         }
     }
 }

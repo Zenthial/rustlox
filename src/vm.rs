@@ -1,10 +1,10 @@
-use std::ops::Deref;
+use std::{collections::LinkedList, ops::Deref};
 
 use crate::{
     chunk::{Chunk, OpCode},
     compiler::compile,
     debug::disassemble_instruction,
-    values::{print_value, Value},
+    values::{print_value, ObjectType, Value},
 };
 
 #[derive(Debug)]
@@ -33,6 +33,7 @@ pub struct VM {
     debug: bool,
 
     stack: Vec<Value>,
+    objects: LinkedList<Box<ObjectType>>,
 }
 
 impl VM {
@@ -41,6 +42,7 @@ impl VM {
             chunk: Box::new(Chunk::init()),
             debug: false,
             stack: Vec::new(),
+            objects: LinkedList::new(),
         }
     }
 
@@ -104,6 +106,11 @@ impl VM {
         }
 
         InterpretResult::InterpretOk
+    }
+
+    fn allocate_object(&mut self, object_type: ObjectType) {
+        // i don't believe i need to handle garbage collection on our object types yet, as they are automatically cleaned up due to rust's memory management
+        self.stack.push(Value::Object(object_type));
     }
 
     fn concatenate(&mut self) -> InterpretResult {
